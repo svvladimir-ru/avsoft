@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  rabbitmq-container:
+    image: rabbitmq:3-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+  mysql-container:
+    image: mysql:latest
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=my-secret-pw
+      - MYSQL_DATABASE=test
+
+  app-container:
+    build: .
+    restart: always
+    command: python /code/Parser.py
+    ports:
+      - 8000:8000
+    depends_on:
+      - rabbitmq-container
+      - mysql-container
