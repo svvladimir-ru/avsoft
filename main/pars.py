@@ -29,6 +29,7 @@ def parser():
     return ''.join(final_pars)
 
 
-with open('files/pars.txt', 'w') as file:
-    file.write(parser())
-print('Записали данные в файл pars.txt')
+def file_pars():
+    with open('files/pars.txt', 'w') as file:
+        file.write(parser())
+    print('Записали данные в файл pars.txt')

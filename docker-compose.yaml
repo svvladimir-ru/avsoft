@@ -38,7 +38,4 @@ services:
     depends_on:
       - app-container-parsing
       - app-container-errors
-  app-container-pars:
-    build: .
-#    restart: always
-    command: python /code/main/pars.py
+

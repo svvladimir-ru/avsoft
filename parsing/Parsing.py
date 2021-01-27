@@ -1,11 +1,14 @@
 import time
 time.sleep(10)
-from sqlalchemy.orm.session import sessionmaker
-from database import engine, Parser
 import pika
 import os
 import re
 import csv
+import sys
+from sqlalchemy.orm.session import sessionmaker
+from database import engine, Parser
+sys.path.append(os.path.join(sys.path[0], '../main'))
+from pars import file_pars
 
 
 """подключение к mysql"""
@@ -35,6 +38,8 @@ def save_file(items):
 
 def callback(ch, method, properties, body):
     i = body.decode('utf-8')
+    if i == 'pars.txt':
+        file_pars()  # если файл парсинга делаем парсинг сайта.
     print(f'Получили файл {i} в обработчик parsing\nдекодировали файл {i}\nоткрыли файл {i}')
     with open(f'files/{i}', 'r') as file:  # чтение файлов
         data = file.readlines()
@@ -68,7 +73,6 @@ def callback(ch, method, properties, body):
                     session.delete(word)
                     session.commit()
                     save_file(items)
-    # if i != 'requirements.txt':
     print(f'Удаляем файл {i}')
     os.remove(f'files/{i}')  # удаление файла
     ch.basic_ack(delivery_tag=method.delivery_tag)
