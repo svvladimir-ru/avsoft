@@ -25,8 +25,10 @@ def parser():
         0].find_all('br')[0].text
 
     final_pars = (img, url_bike, bike_name, bike_description)
+    print(f'Успешно спарсили данные с сайта {url_path}')
     return ''.join(final_pars)
 
 
-with open('pars.txt', 'w') as file:
+with open('files/pars.txt', 'w') as file:
     file.write(parser())
+print('Записали данные в файл pars.txt')

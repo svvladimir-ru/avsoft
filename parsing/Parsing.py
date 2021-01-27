@@ -1,12 +1,13 @@
+import time
+time.sleep(10)
 from sqlalchemy.orm.session import sessionmaker
 from database import engine, Parser
 import pika
-import time
 import os
 import re
 import csv
 
-time.sleep(10)
+
 """подключение к mysql"""
 session = sessionmaker(bind=engine)()
 
@@ -16,7 +17,6 @@ connection = pika.BlockingConnection(pika.ConnectionParameters(
         host='rabbitmq-container'))
 channel = connection.channel()
 channel.queue_declare(queue='Parsing')
-print(' [*] Waiting for messages. To exit press CTRL+C')
 
 
 def save_file(items):
@@ -35,14 +35,16 @@ def save_file(items):
 
 def callback(ch, method, properties, body):
     i = body.decode('utf-8')
-
-    with open(i, 'r') as file:  # чтение файлов
+    print(f'Получили файл {i} в обработчик parsing\nдекодировали файл {i}\nоткрыли файл {i}')
+    with open(f'files/{i}', 'r') as file:  # чтение файлов
         data = file.readlines()
         s = ''.join(data).strip('\n')  # строка из файла
         d = re.split(r'[^А-яA-z]', s)  # убираю все символы
+        print('Получили все строки успешно избавились от лишних символов')
         for words in d:
             if words != '':  # убираю пустые строки
                 '''добавление в базу слов'''
+                print('Начало добавления слов в базу')
                 q = session.query(Parser).filter_by(name=words)
                 word = q.first()
                 if word is None:  # если слова нет в базе добавляю его
@@ -58,14 +60,17 @@ def callback(ch, method, properties, body):
                         word.count = word.count + 1
                         session.commit()
                 if word.count == 2:
+                    print(f'Счетчик слова {word} дошел до 2\nДобавляем слово в файл csv')
                     """счётчик, если количество слов доходит до 2ух добавляем его в csv
                     удаляем значение из базы"""
                     items = [{'word': word.name, 'file_name': word.file_name}]
+                    print(f'Удалили слово {word} из базы')
                     session.delete(word)
                     session.commit()
                     save_file(items)
     # if i != 'requirements.txt':
-    os.remove(i)  # удаление файла
+    print(f'Удаляем файл {i}')
+    os.remove(f'files/{i}')  # удаление файла
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 

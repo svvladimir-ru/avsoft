@@ -15,12 +15,30 @@ services:
       - MYSQL_ROOT_PASSWORD=my-secret-pw
       - MYSQL_DATABASE=test
 
-  app-container:
+  app-container-parsing:
     build: .
-    restart: always
-    command: python /code/Parser.py
+    restart: unless-stopped
     ports:
       - 8000:8000
+    command: python /code/parsing/Parsing.py
     depends_on:
       - rabbitmq-container
       - mysql-container
+  app-container-errors:
+    build: .
+    restart: unless-stopped
+    command: python /code/errors/Error_Handler.py
+    depends_on:
+      - rabbitmq-container
+      - mysql-container
+  app-container-main:
+    build: .
+    restart: unless-stopped
+    command: python /code/main/main.py
+    depends_on:
+      - app-container-parsing
+      - app-container-errors
+  app-container-pars:
+    build: .
+#    restart: always
+    command: python /code/main/pars.py
